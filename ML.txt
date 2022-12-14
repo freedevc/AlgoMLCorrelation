@@ -1,0 +1,74 @@
+// Import necessary libraries
+using System;
+using System.Linq;
+using System.IO;
+using System.Collections.Generic;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
+
+namespace ML_Correlation_Prediction
+{
+// Define the input data schema
+class InputData
+{
+[LoadColumn(0)] public float Variable1;
+[LoadColumn(1)] public float Variable2;
+[LoadColumn(2)] public float Variable3;
+[LoadColumn(3)] public float Variable4;
+[LoadColumn(4)] public float Variable5;
+[LoadColumn(5)] public float FutureValue;
+}
+
+Copy code
+// Define the output data schema
+class OutputData
+{
+    [ColumnName("Score")] public float FutureValue;
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Create the machine learning context
+        var context = new MLContext();
+
+        // Load the data from a file
+        var data = context.Data.LoadFromTextFile<InputData>(
+            "data.csv", hasHeader: true, separatorChar: ',');
+
+        // Split the data into training and test sets
+        var trainTestData = context.Data.TrainTestSplit(data, testFraction: 0.2);
+
+        // Define the machine learning pipeline
+        var pipeline = context.Transforms.Concatenate(
+            "Features", "Variable1", "Variable2", "Variable3", "Variable4", "Variable5")
+            .Append(context.Regression.Trainers.FastTree());
+
+        // Train the model
+        var model = pipeline.Fit(trainTestData.TrainSet);
+
+        // Evaluate the model
+        var metrics = context.Regression.Evaluate(
+            model.Transform(trainTestData.TestSet), "FutureValue", "Score");
+
+        Console.WriteLine("R-squared: " + metrics.RSquared);
+
+        // Use the model to make predictions
+        var predictionEngine = context.Model.CreatePredictionEngine<InputData, OutputData>(model);
+
+        var inputData = new InputData
+        {
+            Variable1 = 10,
+            Variable2 = 20,
+            Variable3 = 30,
+            Variable4 = 40,
+            Variable5 = 50
+        };
+        var prediction = predictionEngine.Predict(inputData);
+
+        Console.WriteLine("Predicted future value: " + prediction.FutureValue);
+    }
+}
