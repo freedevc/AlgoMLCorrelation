@@ -1,6 +1,6 @@
 # AlgoMLCorrelation
 
-At first you have to install Python with version > 3.7 (Recommend 3.10 newest)
+At first you have to install Python with version > 3.7 (Recommend 3.10 newest) and run ```pip install -r requirements.txt```
 
 **Link to project get Data: https://drive.google.com/file/d/1rG0T13LubrDTUgjvFvCFDBRYiz8OMQwH/view?usp=sharing**
 
